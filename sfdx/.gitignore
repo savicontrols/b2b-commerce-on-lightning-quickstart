@@ -9,3 +9,4 @@
 .prettierrc
 # force-app
 experience-bundle-package
+metadataPackage_*/

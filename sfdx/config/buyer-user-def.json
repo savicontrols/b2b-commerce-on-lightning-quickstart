@@ -1,11 +1,11 @@
 {
-    "username": "buyer@scratch.org",
-    "LastName": "CreatedViaQuickstart",
-    "Email": "youremail@example.com",
-    "Alias": "buyer",
-    "TimeZoneSidKey": "America/Denver",
+    "username": "testannecarson@gmail.com",
+    "LastName": "Carson",
+    "Email": "kkhargrave1@gmail.com",
+    "Alias": "tcars",
+    "TimeZoneSidKey": "America/Chicago",
     "LocaleSidKey": "en_US",
     "EmailEncodingKey": "UTF-8",
     "LanguageLocaleKey": "en_US",
-    "profileName": "Buyer_User_Profile_From_QuickStart"
+    "profileName": "B2B Storefront Registered Users"
 }

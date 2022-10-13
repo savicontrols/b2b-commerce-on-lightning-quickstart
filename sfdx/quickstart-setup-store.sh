@@ -143,7 +143,8 @@ register_and_map_pricing_integration
 # By default, use the internal promotions integration
 register_and_map_promotions_integration 
 
-register_and_map_credit_card_payment_integration
+# 2022 0921 PWard Commented out this because we've setup stripe integration manually
+#register_and_map_credit_card_payment_integration
 
 echo "You can view the results of the mapping in the Store Integrations page at /lightning/page/storeDetail?lightning__webStoreId=$storeId&storeDetail__selectedTab=store_integrations"
 
@@ -163,9 +164,10 @@ mainFlowName=`ls force-app/main/default/flows/*Checkout.flow-meta.xml | sed 's/.
 sed "s/sfdc_checkout__CheckoutTemplate/$mainFlowName/g" $checkoutMetaFile > $tmpfile
 mv -f $tmpfile $checkoutMetaFile
 
+# 2022 0922 Pward commented this out because we already created this profile
 # Add the Customer Community Plus Profile clone to the list of members for the store
 #    + add value 'Live' to field 'status' to activate community
-echo "3. Updating members list and activating community."
+#echo "3. Updating members list and activating community."
 networkMetaFile="experience-bundle-package/unpackaged/networks/$communityNetworkName".network
 tmpfile=$(mktemp)
 sed "s/<networkMemberGroups>/<networkMemberGroups><profile>buyer_user_profile_from_quickstart<\/profile>/g;s/<status>.*/<status>Live<\/status>/g" $networkMetaFile > $tmpfile
@@ -174,44 +176,66 @@ mv -f $tmpfile $networkMetaFile
 # Import Products and related data
 # Get new Buyer Group Name
 echo "4. Importing products."
-buyergroupName=$(bash ./import_products.sh $1 | tail -n 1)
+# 2022 0921 PWard replaced this with the hard coded value for the buyer group we manually created
+# buyergroupName=$(bash ./import_products.sh $1 | tail -n 1)
+buyergroupName="TEST SAVIControlsPortal Buyer Group 1 - Standard Pricing"
+
+# 2022 0922 Pward removed the block below because we have a role in the production org and we suspect that we wouldn't have one in a scratch org
 
 # Assign a role to the admin user, else update user will error out
-echo "5. Mapping Admin User to Role."
-ceoID=`sfdx force:data:soql:query --query \ "SELECT Id FROM UserRole WHERE Name = 'CEO'" -r csv |tail -n +2`
-sfdx force:data:record:create -s UserRole -v "ParentRoleId='$ceoID' Name='AdminRoleFromQuickstart' DeveloperName='AdminRoleFromQuickstart' RollupDescription='AdminRoleFromQuickstart' "
-newRoleID=`sfdx force:data:soql:query --query \ "SELECT Id FROM UserRole WHERE Name = 'AdminRoleFromQuickstart'" -r csv |tail -n +2`
-username=`sfdx force:user:display | grep "Username" | sed 's/Username//g;s/^[[:space:]]*//g'`
-
-sfdx force:data:record:update -s User -v "UserRoleId=$newRoleID" -w "Username=$username"
+# echo "5. Mapping Admin User to Role."
+# ceoID=`sfdx force:data:soql:query --query \ "SELECT Id FROM UserRole WHERE Name = 'CEO'" -r csv |tail -n +2`
+# sfdx force:data:record:create -s UserRole -v "ParentRoleId='$ceoID' Name='AdminRoleFromQuickstart' DeveloperName='AdminRoleFromQuickstart' RollupDescription='AdminRoleFromQuickstart' "
+# newRoleID=`sfdx force:data:soql:query --query \ "SELECT Id FROM UserRole WHERE Name = 'AdminRoleFromQuickstart'" -r csv |tail -n +2`
+# username=`sfdx force:user:display | grep "Username" | sed 's/Username//g;s/^[[:space:]]*//g'`
+# sfdx force:data:record:update -s User -v "UserRoleId=$newRoleID" -w "Username=$username"
 
 # Create Buyer User. Go to config/buyer-user-def.json to change name, email and alias.
-echo "6. Creating Buyer User with associated Contact and Account."
-sfdx force:user:create -f config/buyer-user-def.json
+# echo "6. Creating Buyer User with associated Contact and Account."
+# 2022 0921 PWard Commented out this because we've setup a buyer user already
+# sfdx force:user:create -f config/buyer-user-def.json
 buyerusername=`grep -i '"Username":' config/buyer-user-def.json|cut -d "\"" -f 4`
 
 # Get most recently created account with JITUserAccount suffix
 # Convert Account to Buyer Account
 echo "Making Account a Buyer Account."
-accountID=`sfdx force:data:soql:query --query \ "SELECT Id FROM Account WHERE Name LIKE '${buyerusername}JITUserAccount' ORDER BY CreatedDate Desc LIMIT 1" -r csv |tail -n +2`
-sfdx force:data:record:create -s BuyerAccount -v "BuyerId='$accountID' Name='BuyerAccountFromQuickstart' isActive=true"
+
+# 2022 0921 PWard Hard coding the account name that we manually created
+accountID=`sfdx force:data:soql:query --query \ "SELECT Id FROM Account WHERE Name = 'TEST ABC Dealer - Standard Pricing in DP' ORDER BY CreatedDate Desc LIMIT 1" -r csv |tail -n +2`
+
+#accountID=`sfdx force:data:soql:query --query \ "SELECT Id FROM Account WHERE Name LIKE '${buyerusername}JITUserAccount' ORDER BY CreatedDate Desc LIMIT 1" -r csv |tail -n +2`
+# 2022 0921 PWard Commented out this because we've setup a buyer user already
+# sfdx force:data:record:create -s BuyerAccount -v "BuyerId='$accountID' Name='BuyerAccountFromQuickstart' isActive=true"
 
 # Assign Account to Buyer Group
 echo "Assigning Buyer Account to Buyer Group."
 buyergroupID=`sfdx force:data:soql:query --query \ "SELECT Id FROM BuyerGroup WHERE Name = '${buyergroupName}'" -r csv |tail -n +2`
-sfdx force:data:record:create -s BuyerGroupMember -v "BuyerGroupId='$buyergroupID' BuyerId='$accountID'"
+# 2022 0921 PWard Commented out this because we've assigned the buyer account with the buyer group already
+#sfdx force:data:record:create -s BuyerGroupMember -v "BuyerGroupId='$buyergroupID' BuyerId='$accountID'"
+
 
 # Add Contact Point Addresses to the buyer account associated with the buyer user.
 # The account will have 2 Shipping and 2 billing addresses associated to it.
 # To view the addresses in the UI you need to add Contact Point Addresses to the related lists for Account
 echo "7. Add Contact Point Addresses to the Buyer Account."
 existingCPAForBuyerAccount=`sfdx force:data:soql:query --query \ "SELECT Id FROM ContactPointAddress WHERE ParentId='${accountID}' LIMIT 1" -r csv |tail -n +2`
+
+echo "existingCPAForBuyerAccount=$existingCPAForBuyerAccount"
+echo "accountID=$accountID"
+echo "buyerusername=$buyerusername"
+echo "buyergroupID=$buyergroupID"
+
 if [ -z "$existingCPAForBuyerAccount" ]
 then
-	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Shipping' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='Canada' IsDefault='true' Name='Default Shipping' PostalCode='V6B 5A7' State='BC' Street='333 Seymour Street (Shipping)'"
-	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Billing' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='Canada' IsDefault='true' Name='Default Billing' PostalCode='V6B 5A7' State='BC' Street='333 Seymour Street (Billing)'"
-	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Shipping' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='United States' IsDefault='false' Name='Non-Default Shipping' PostalCode='94105' State='CA' Street='415 Mission Street (Shipping)'"
-	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Billing' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='United States' IsDefault='false' Name='Non-Default Billing' PostalCode='94105' State='CA' Street='415 Mission Street (Billing)'"
+	# 2022 0921 PWard Replaced "State" property name with "StateCode"
+	# sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Shipping' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='Canada' IsDefault='true' Name='Default Shipping' PostalCode='V6B 5A7' State='BC' Street='333 Seymour Street (Shipping)'"
+	# sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Billing' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='Canada' IsDefault='true' Name='Default Billing' PostalCode='V6B 5A7' State='BC' Street='333 Seymour Street (Billing)'"
+	# sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Shipping' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='United States' IsDefault='false' Name='Non-Default Shipping' PostalCode='94105' State='CA' Street='415 Mission Street (Shipping)'"
+	# sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Billing' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='United States' IsDefault='false' Name='Non-Default Billing' PostalCode='94105' State='CA' Street='415 Mission Street (Billing)'"
+	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Shipping' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' CountryCode='CA' IsDefault='true' Name='Default Shipping' PostalCode='V6B 5A7' StateCode='BC' Street='333 Seymour Street (Shipping)'"
+	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Billing' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' CountryCode='CA' IsDefault='true' Name='Default Billing' PostalCode='V6B 5A7' StateCode='BC' Street='333 Seymour Street (Billing)'"
+	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Shipping' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='United States' IsDefault='false' Name='Non-Default Shipping' PostalCode='94105' StateCode='CA' Street='415 Mission Street (Shipping)'"
+	sfdx force:data:record:create -s ContactPointAddress -v "AddressType='Billing' ParentId='$accountID' ActiveFromDate='2020-01-01' ActiveToDate='2040-01-01' City='Vancouver' Country='United States' IsDefault='false' Name='Non-Default Billing' PostalCode='94105' StateCode='CA' Street='415 Mission Street (Billing)'"
 else
 	echo "There is already at least 1 Contact Point Address for your Buyer Account ${buyerusername}JITUserAccount"
 fi
@@ -228,11 +252,12 @@ echo "Setup Guest Browsing."
 echo "Checking if B2B or B2C"
 storeType=`sfdx force:data:soql:query --query \ "SELECT Type FROM WebStore WHERE Name = '${communityNetworkName}'" -r csv |tail -n +2`
 echo "Store Type is $storeType"
+# 2022 0921 PWard commented this out because we're B2B
 # Update Guest Profile with required CRUD and FLS
-if [ "$storeType" = "B2C" ]
-then
-	sh ./enable_guest_browsing.sh $communityNetworkName $buyergroupName true
-fi	
+#if [ "$storeType" = "B2C" ]
+#then
+#	sh ./enable_guest_browsing.sh $communityNetworkName $buyergroupName true
+#fi
 #############################
 #   Deploy Updated Store    #
 #############################
@@ -248,10 +273,12 @@ cd ../..
 
 echo "Deploy the new zip including the flow, ignoring warnings, then clean-up."
 sfdx force:mdapi:deploy -g -f experience-bundle-package/"$communityExperienceBundleName"ToDeploy.zip --wait -1 --verbose --singlepackage
-rm -fr experience-bundle-package
+# 2022 0921 PWard commented this out because I don't want to lose the file
+#rm -fr experience-bundle-package
 
 echo "Removing the package xml files used for retrieving and deploying metadata at this step."
-rm package-retrieve.xml
+# 2022 0921 PWard commented this out because I don't want to lose the file
+#rm package-retrieve.xml
 
 echo "Publishing the community."
 sfdx force:community:publish -n "$communityNetworkName"
@@ -262,7 +289,8 @@ sfdx 1commerce:search:start -n "$communityNetworkName"
 
 echo "QUICK START COMPLETE!"
 
-sfdx force:user:password:generate -o ${buyerusername}
+# 2022 0921 PWard commented this out because we created a user manually
+#sfdx force:user:password:generate -o ${buyerusername}
 echo "Use this buyer user to log in to the store:"
 sfdx force:user:display -u ${buyerusername}
 

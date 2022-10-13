@@ -3,8 +3,8 @@ public class QuickStartIntegrationTest {
     // This test assumes you ran Quick Start for just one store.
     // If you have multiple stores you need to specify the store name in the query below:
     public static WebStore webStore = [SELECT Id FROM WebStore WHERE Type = 'B2B' LIMIT 1];
-    public static String buyerUsername = 'buyer@scratch.org';
     
+    public static String buyerUsername = 'testannecarson@gmail.com';
     @isTest static void testB2BWebStoreCreated() {
         Integer numberOfB2BStores = [SELECT count() FROM WebStore WHERE Type = 'B2B'];
         System.assert(numberOfB2BStores > 0, 'There are no B2B stores created in this environment.');
@@ -56,18 +56,18 @@ public class QuickStartIntegrationTest {
     @isTest static void testBuyerAccountCreated() {
         Integer numberOfBuyerUsers = [SELECT count() FROM User WHERE Username = :buyerUsername];
         System.assert(numberOfBuyerUsers > 0, 'No user with this username could be found: ' + buyerUsername);
-        String buyerUserAccountName = buyerUsername + 'JITUserAccount';
+        String buyerUserAccountName = 'TEST ABC Dealer - Standard Pricing in DP';
         Account buyerUserAccount = [SELECT Id FROM Account WHERE Name = :buyerUserAccountName LIMIT 1];
         System.assertNotEquals(null, buyerUserAccount, 'There is no account associated with your buyer user');
     }
     @isTest static void testContactPointAddressesCreatedForBuyer() {
-        String buyerUserAccountName = buyerUsername + 'JITUserAccount';
+        String buyerUserAccountName = 'TEST ABC Dealer - Standard Pricing in DP';
         Account buyerUserAccount = [SELECT Id FROM Account WHERE Name = :buyerUserAccountName LIMIT 1];
         Integer numberOfContactPointAddressesAssociatedToAccount = [SELECT count() FROM ContactPointAddress WHERE ParentId = :buyerUserAccount.Id];
         System.assert(numberOfContactPointAddressesAssociatedToAccount == 4, 'The number of Contact Point Addresses for the buyer account is not 4');
     }
     @isTest static void testBuyerAccountIsAssociatedToBuyerGroup() {
-        String buyerUserAccountName = buyerUsername + 'JITUserAccount';
+        String buyerUserAccountName = 'TEST ABC Dealer - Standard Pricing in DP';
         Account buyerUserAccount = [SELECT Id FROM Account WHERE Name = :buyerUserAccountName LIMIT 1];
         Integer numberOfBuyerGroupMembersAssociatedToAccount = [SELECT count() FROM BuyerGroupMember WHERE BuyerId = :buyerUserAccount.Id];
         System.assert(numberOfBuyerGroupMembersAssociatedToAccount == 1, 'The number of Buyer Group Members for the buyer account is not 1');

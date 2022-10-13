@@ -30,7 +30,7 @@ public class B2BGetInfoTest {
         CartCheckoutSession cartCheckoutSession = new CartCheckoutSession(Name = 'TestSession', State = 'Pending', WebCartId = cart.Id);
         insert cartCheckoutSession;
 
-        Profile profile = [SELECT Id FROM Profile WHERE Name='Buyer_User_Profile_From_QuickStart' LIMIT 1];
+        Profile profile = [SELECT Id FROM Profile WHERE Name='B2B Storefront Registered Users' LIMIT 1];
         User user = new User(Alias='buyer', Email='buyer@example.com', LastName='Buyer',
                 TimeZoneSidKey='GMT', LocaleSidKey='en_US', Username='buyer@example.com',
                 EmailEncodingKey='UTF-8', ProfileId=profile.Id, LanguageLocaleKey='en_US',
@@ -44,7 +44,7 @@ public class B2BGetInfoTest {
         Profile pAdmin = [SELECT id, Name FROM Profile where name = 'System Administrator' ].get(0);  
         User cu = [SELECT Id FROM User WHERE UserName = 'buyer@example.com' LIMIT 1];
         User au = [SELECT Id FROM User WHERE ProfileId = :pAdmin.Id LIMIT 1];
-        NetworkMember membership = [SELECT NetworkID, MemberID FROM NetworkMember WHERE memberID = :cu.Id];
+        NetworkMember membership = [SELECT NetworkID, MemberID FROM NetworkMember WHERE memberID = :cu.Id LIMIT 1];
         Id communityId = membership.NetworkID;
         Product2 p2  = [SELECT Id FROM Product2 LIMIT 1];
         

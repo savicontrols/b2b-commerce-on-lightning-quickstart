@@ -16,7 +16,9 @@ else
 	pricebook1=`sfdx force:data:soql:query -q "SELECT Id FROM Pricebook2 WHERE Name='Standard Price Book' AND IsStandard=true LIMIT 1" -r csv |tail -n +2`
 	
 	sed -e "s/\"Pricebook2Id\": \"PutStandardPricebookHere\"/\"Pricebook2Id\": \"${pricebook1}\"/g" json/PricebookEntrys-template.json > json/PricebookEntrys.json
-	
+
+	exit
+
 	# Buyer Group
 	numberofbuyergroups=`sfdx force:data:soql:query -q "SELECT COUNT(Id) FROM BuyerGroup" -r csv  |tail -n +2`
 	newnumber=$(($numberofbuyergroups + 1))

@@ -17,14 +17,14 @@ public class B2BPaymentControllerTest {
         insert cartDeliveryGroup;
 
         // The cpas are related to the account (and through it to the contact)
-        ContactPointAddress cpa1 = new ContactPointAddress(Name='CPA1', Street='Street1', City='city1', State='state1',
-                Country='country1', PostalCode='12345', IsDefault=true, AddressType='Billing', ParentId=account.Id);
-        ContactPointAddress cpa2 = new ContactPointAddress(Name='CPA2', Street='Street2', City='city2', State='state2',
-                Country='country2', PostalCode='12345', IsDefault=false, AddressType='Billing', ParentId=account.Id);
+        ContactPointAddress cpa1 = new ContactPointAddress(Name='CPA1', Street='Street1', City='city1', StateCode='TX',
+                CountryCode='US', PostalCode='75001', IsDefault=true, AddressType='Billing', ParentId=account.Id);
+        ContactPointAddress cpa2 = new ContactPointAddress(Name='CPA2', Street='Street2', City='city2', StateCode='NY',
+                CountryCode='US', PostalCode='10001', IsDefault=false, AddressType='Billing', ParentId=account.Id);
 
         // This contact point address should not show up because it's set to AddressType Shipping
-        ContactPointAddress cpaShipping = new ContactPointAddress(Name='CPAS', Street='StreetS', City='cityS',
-                Country='countryS', PostalCode='12345', IsDefault=false, AddressType='Shipping', ParentId=account.Id);
+        ContactPointAddress cpaShipping = new ContactPointAddress(Name='CPAS', Street='StreetS', City='cityS', StateCode='CA',
+                CountryCode='US', PostalCode='60007', IsDefault=false, AddressType='Shipping', ParentId=account.Id);
 
         insert cpa1;
         insert cpa2;
@@ -32,11 +32,11 @@ public class B2BPaymentControllerTest {
         
         // This profile name is the name of the buyer profile. The name specified here is what is installed using
         // SFDX and may be different for you.
-        Profile profile = [SELECT Id FROM Profile WHERE Name='Buyer_User_Profile_From_QuickStart' LIMIT 1];
+        Profile profile = [SELECT Id FROM Profile WHERE Name='Customer Community Plus Login User' LIMIT 1];
         User user = new User(Alias='buyer', Email='buyer@example.com', LastName='Buyer',
                 TimeZoneSidKey='GMT', LocaleSidKey='en_US', Username='buyer@example.com',
                 EmailEncodingKey='UTF-8', ProfileId=profile.Id, LanguageLocaleKey='en_US',
-                ContactId=contact.Id);
+                ContactId=contact.Id, PortalRole = 'Executive');
         insert user;
         
         insertCartItem(cart.Id, cartDeliveryGroup.Id);
